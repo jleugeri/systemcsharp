@@ -33,6 +33,7 @@ class MyModule2 : Module
     {
         t2 = Process2("t2", ev1);
         p2 = new InPort<string>("MessageInPort", _eventloop);
+        p2.Updated.static_sensitivity += ()=>System.Console.WriteLine("PORT 2 was updated!");
     }
 
     async Task Process2(string name, Event ev1)
@@ -51,20 +52,24 @@ class MyModule2 : Module
     }
 }
 
+
 class Program
 {
     public static void Main(string[] args)
     {
-        EventLoop el = new EventLoop();
+        EventLoop el = new EventLoop(); 
+
         Event ev1 = new Event("ev1", el);
 
         MyModule1 mod1 = new MyModule1(el, ev1);
+
         MyModule2 mod2 = new MyModule2(el, ev1);
+
 
         mod2.p2.bind(mod1.p1);
 
-        el.run();
 
+        el.run();
     }
 
 

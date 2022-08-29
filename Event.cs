@@ -6,57 +6,61 @@ using System.Runtime.CompilerServices;
 ///</summary>
 class Event
 {
+
     ///<summary>
-    ///Holds all the actions scheduled for execution upon the next trigger of 
-    ///this event.
+    ///Holds all the statically scheduled actions for execution upon 
+    ///the next trigger of this event.
     ///</summary>
-    private List<Action> scheduled_actions;
+    public Action? static_sensitivity;
+    ///<summary>
+    ///Holds all the dynamically scheduled actions for execution upon 
+    ///the next trigger of this event.
+    ///</summary>
+    public Action? dynamic_sensitivity;
 
     ///<summary>Holds a reference to the `EventLoop`.</summary>
-    private EventLoop eventloop;
-
+    protected EventLoop eventloop;
 
     ///<summary>Name of the event.</summary>
-    private string name;
+    protected string name;
 
     ///<summary>Constructs an event with the given name.</summary>
     public Event(string _name, EventLoop _eventloop)
     {
         name = _name;
         eventloop = _eventloop;
-
-        // Begin with an empty list of actions
-        scheduled_actions = new List<Action>();
+        static_sensitivity = null;
+        dynamic_sensitivity = null;
     }
 
     ///<summary>
-    ///Registers an `Action` for execution upon the next trigger of this event
+    ///Notify the event-loop to schedule this event with `delay`
     ///</summary>
-    public void schedule(Action action)
-    {
-        scheduled_actions.Add(action);
-    }
-
-    ///<summary>Notify the event-loop to schedule this event with `delay`</summary>
     public void notify(double delay)
     {
         eventloop.notify(this, delay);
     }
 
     ///<summary>
-    ///Triggers the event, executes scheduled actions and clears the schedule.
+    ///Triggers the event immediately.
+    ///When triggered, executes and clears dynamically scheduled actions
     ///While executing the scheduled actions, new actions might be scheduled
-    ///for the next time the event is `trigger`ed.
+    ///for the next time the event is triggered.
     ///</summary>
-    public void trigger()
+    public void notify()
     {
-        List<Action> current_actions = scheduled_actions;
-        scheduled_actions = new List<Action>();
+        Action? current_action = null;
 
-        foreach (Action action in current_actions)
-        {
-            action();
-        }
+        if (dynamic_sensitivity != null)
+            current_action += dynamic_sensitivity;
+
+        dynamic_sensitivity = null;
+
+        if (static_sensitivity != null)
+            current_action += static_sensitivity;
+
+        if (current_action != null)
+            current_action();
     }
 
     ///<summary>
@@ -69,7 +73,11 @@ class Event
         return new EventAwaiter(this);
     }
 
-    ///<summary>///Awaiter for `Event` class.///</summary>
+    ///<summary>
+    ///Custom `Awaiter` for the `Event` class.
+    ///This class makes it possible to `await` an `Event`, which adds the
+    ///continuation after `await` to the dynamic sensitivity of the `Event`.
+    ///</summary>
     public struct EventAwaiter : INotifyCompletion
     {
         ///<summary>Reference to the awaiter's parent event.</summary>
@@ -94,11 +102,11 @@ class Event
         public void OnCompleted(Action continuation)
         {
             if (null != continuation)
-                parent.schedule(continuation);
+                parent.dynamic_sensitivity += continuation;
         }
 
         ///<summary>Returns void</summary>
         public void GetResult()
-        {}
+        { }
     }
 }
