@@ -43,24 +43,10 @@ class Event
 
     ///<summary>
     ///Triggers the event immediately.
-    ///When triggered, executes and clears dynamically scheduled actions
-    ///While executing the scheduled actions, new actions might be scheduled
-    ///for the next time the event is triggered.
     ///</summary>
     public void notify()
     {
-        Action? current_action = null;
-
-        if (dynamic_sensitivity != null)
-            current_action += dynamic_sensitivity;
-
-        dynamic_sensitivity = null;
-
-        if (static_sensitivity != null)
-            current_action += static_sensitivity;
-
-        if (current_action != null)
-            current_action();
+        eventloop.notify(this);
     }
 
     ///<summary>
