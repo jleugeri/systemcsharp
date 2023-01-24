@@ -1,18 +1,18 @@
 class Module
 {
-    protected EventLoop eventloop;
+    protected EventLoop EventLoop;
 
-    public double simulation_time { get {return eventloop.simulation_time;} }
+    public double SimulationTime { get {return EventLoop.SimulationTime;} }
 
-    public Module(EventLoop _eventloop)
+    public Module(EventLoop eventloop)
     {
-        eventloop = _eventloop;
+        EventLoop = eventloop;
     }
 
-    public Event delay(double _delay)
+    public Event Delay(double delay)
     {
-        Event ev = new Event("Delay", eventloop);
-        ev.notify(_delay);
+        Event ev = new Event("Delay", EventLoop);
+        ev.Notify(delay);
         
         return ev;
     }

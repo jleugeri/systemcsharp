@@ -11,42 +11,43 @@ class Event
     ///Holds all the statically scheduled actions for execution upon 
     ///the next trigger of this event.
     ///</summary>
-    public Action? static_sensitivity;
+    public Action? StaticSensitivity;
+
     ///<summary>
     ///Holds all the dynamically scheduled actions for execution upon 
     ///the next trigger of this event.
     ///</summary>
-    public Action? dynamic_sensitivity;
+    public Action? DynamicSensitivity;
 
     ///<summary>Holds a reference to the `EventLoop`.</summary>
-    protected EventLoop eventloop;
+    protected EventLoop EventLoop;
 
     ///<summary>Name of the event.</summary>
-    protected string name;
+    protected string Name;
 
     ///<summary>Constructs an event with the given name.</summary>
-    public Event(string _name, EventLoop _eventloop)
+    public Event(string name, EventLoop eventLoop)
     {
-        name = _name;
-        eventloop = _eventloop;
-        static_sensitivity = null;
-        dynamic_sensitivity = null;
+        Name = name;
+        EventLoop = eventLoop;
+        StaticSensitivity = null;
+        DynamicSensitivity = null;
     }
 
     ///<summary>
     ///Notify the event-loop to schedule this event with `delay`
     ///</summary>
-    public void notify(double delay)
+    public void Notify(double delay)
     {
-        eventloop.notify(this, delay);
+        EventLoop.Notify(this, delay);
     }
 
     ///<summary>
     ///Triggers the event immediately.
     ///</summary>
-    public void notify()
+    public void Notify()
     {
-        eventloop.notify(this);
+        EventLoop.Notify(this);
     }
 
     ///<summary>
@@ -67,12 +68,12 @@ class Event
     public struct EventAwaiter : INotifyCompletion
     {
         ///<summary>Reference to the awaiter's parent event.</summary>
-        private Event parent;
+        private Event Parent;
 
-        ///<summary>Constructs an `EventAwaiter` for an `Event _parent`</summary>
-        public EventAwaiter(Event _parent)
+        ///<summary>Constructs an `EventAwaiter` for an `Event parent`</summary>
+        public EventAwaiter(Event parent)
         {
-            parent = _parent;
+            Parent = parent;
         }
 
         ///<summary>
@@ -88,7 +89,7 @@ class Event
         public void OnCompleted(Action continuation)
         {
             if (null != continuation)
-                parent.dynamic_sensitivity += continuation;
+                Parent.DynamicSensitivity += continuation;
         }
 
         ///<summary>Returns void</summary>

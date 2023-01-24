@@ -1,14 +1,14 @@
-class OutPort<DataT>
+class OutPort<DT>
 {
-    public string name { get; }
+    public string Name { get; }
 
-    protected DataT _data;
-    public DataT data {
-        get { return _data; }
-        set { _data = value; OnUpdated(); }
+    protected DT Data;
+    public DT data {
+        get { return Data; }
+        set { Data = value; OnUpdated(); }
     }
 
-    public delegate void UpdatedEventHandler(DataT data);
+    public delegate void UpdatedEventHandler(DT data);
     public event UpdatedEventHandler? Updated;
 
     protected virtual void OnUpdated()
@@ -17,9 +17,9 @@ class OutPort<DataT>
             Updated(data);
     }
 
-    public OutPort(string _name, DataT initial_data) 
+    public OutPort(string name, DT initialData) 
     {
-        name = _name;
-        _data = initial_data;
+        Name = name;
+        Data = initialData;
     }
 }
