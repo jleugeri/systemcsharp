@@ -1,28 +1,32 @@
-class EventLoop
+///<summary>
+///Basic implementation of IEventLoop that can schedule IEvents.
+///</summary>
+public class EventLoop : IEventLoop
 {
     Action? ImmediateAction;
 
     public double SimulationTime { get; private set; }
-    private PriorityQueue<Tuple<Event,double>,double> Queue;
+    public int Count { get { return Queue.Count; } }
+
+    private PriorityQueue<Tuple<IEvent, double>, double> Queue;
 
     public EventLoop()
     {
         SimulationTime = 0.0;
         ImmediateAction = null;
-        Queue = new PriorityQueue<Tuple<Event,double>, double>();
+        Queue = new PriorityQueue<Tuple<IEvent, double>, double>();
     }
 
-    public int Count { get { return Queue.Count; } }
 
-    public void Notify(Event ev, double dt)
+    public void Notify(IEvent ev, double dt)
     {
         double nextTime = SimulationTime + dt;
-        Queue.Enqueue(new Tuple<Event,double>(ev,nextTime), nextTime);
+        Queue.Enqueue(new Tuple<IEvent, double>(ev, nextTime), nextTime);
     }
 
-    public void Notify(Event ev)
+    public void Notify(IEvent ev)
     {
-        
+
         // queue all dynamically scheduled actions
         if (ev.DynamicSensitivity != null)
             ImmediateAction += ev.DynamicSensitivity;
@@ -38,16 +42,16 @@ class EventLoop
     public void Run()
     {
         // Run event-loop until completion
-        while(Count > 0)
+        while (Count > 0)
         {
             /*** Timed notification phase ***/
             //Find all actions in the queue to be triggered now.
             Action? currentAction = ImmediateAction; // ImmediateAction is probably null here
 
-            while(true)
+            while (true)
             {
                 //advance to next event
-                (Event ev, SimulationTime) = Queue.Dequeue();
+                (IEvent ev, SimulationTime) = Queue.Dequeue();
 
                 // queue all dynamically scheduled actions
                 if (ev.DynamicSensitivity != null)
@@ -62,7 +66,7 @@ class EventLoop
 
                 // break if we ran out of elements to check
                 // or if the next element in queue happens later
-                if(Queue.Count == 0 || Queue.Peek().Item2 > SimulationTime)
+                if (Queue.Count == 0 || Queue.Peek().Item2 > SimulationTime)
                     break;
             }
 
@@ -80,7 +84,7 @@ class EventLoop
             } while (ImmediateAction != null);
 
             /*** Update phase ***/
-            
+
 
         }
     }

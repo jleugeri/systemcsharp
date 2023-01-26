@@ -1,25 +1,26 @@
-class OutPort<DT>
+
+public class OutPort<DataT> : IOutPort<DataT>
 {
     public string Name { get; }
 
-    protected DT Data;
-    public DT data {
-        get { return Data; }
-        set { Data = value; OnUpdated(); }
+    protected DataT _data;
+    public DataT Data
+    {
+        get { return _data; }
+        set { _data = value; OnUpdated(); }
     }
 
-    public delegate void UpdatedEventHandler(DT data);
-    public event UpdatedEventHandler? Updated;
+    public Action<DataT>? Updated { get; set; }
 
     protected virtual void OnUpdated()
     {
-        if(Updated != null)
-            Updated(data);
+        if (Updated != null)
+            Updated(Data);
     }
 
-    public OutPort(string name, DT initialData) 
+    public OutPort(string name, DataT initialData)
     {
         Name = name;
-        Data = initialData;
+        _data = initialData;
     }
 }

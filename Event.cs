@@ -1,32 +1,20 @@
 using System.Runtime.CompilerServices;
 
-
 ///<summary>
-/// An awaitable event for simulation of asynchronous systems.
+/// A basic implementation of IEvent that can be awaited for simulation of asynchronous systems.
 ///</summary>
-class Event
+public class Event : IEvent
 {
+    public Action? StaticSensitivity { get; set; }
 
-    ///<summary>
-    ///Holds all the statically scheduled actions for execution upon 
-    ///the next trigger of this event.
-    ///</summary>
-    public Action? StaticSensitivity;
 
-    ///<summary>
-    ///Holds all the dynamically scheduled actions for execution upon 
-    ///the next trigger of this event.
-    ///</summary>
-    public Action? DynamicSensitivity;
+    public Action? DynamicSensitivity { get; set; }
 
-    ///<summary>Holds a reference to the `EventLoop`.</summary>
-    protected EventLoop EventLoop;
+    public string Name { get; }
 
-    ///<summary>Name of the event.</summary>
-    protected string Name;
+    protected IEventLoop EventLoop;
 
-    ///<summary>Constructs an event with the given name.</summary>
-    public Event(string name, EventLoop eventLoop)
+    public Event(string name, IEventLoop eventLoop)
     {
         Name = name;
         EventLoop = eventLoop;
@@ -34,9 +22,6 @@ class Event
         DynamicSensitivity = null;
     }
 
-    ///<summary>
-    ///Notify the event-loop to schedule this event with `delay`
-    ///</summary>
     public void Notify(double delay)
     {
         EventLoop.Notify(this, delay);
@@ -55,7 +40,7 @@ class Event
     ///When the returned object is `await`ed, it registers the given 
     ///continuation action with the parent `Event` object.
     ///</summary>
-    public EventAwaiter GetAwaiter()
+    public IEventAwaiter GetAwaiter()
     {
         return new EventAwaiter(this);
     }
@@ -65,7 +50,7 @@ class Event
     ///This class makes it possible to `await` an `Event`, which adds the
     ///continuation after `await` to the dynamic sensitivity of the `Event`.
     ///</summary>
-    public struct EventAwaiter : INotifyCompletion
+    public struct EventAwaiter : IEventAwaiter
     {
         ///<summary>Reference to the awaiter's parent event.</summary>
         private Event Parent;

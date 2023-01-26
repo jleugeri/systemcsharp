@@ -1,19 +1,20 @@
-class Module
+
+public class Module : IModule
 {
-    protected EventLoop EventLoop;
+    protected IEventLoop EventLoop;
 
-    public double SimulationTime { get {return EventLoop.SimulationTime;} }
+    protected double SimulationTime { get { return EventLoop.SimulationTime; } }
 
-    public Module(EventLoop eventloop)
+    public Module(IEventLoop eventloop)
     {
         EventLoop = eventloop;
     }
 
-    public Event Delay(double delay)
+    public IEvent Delay(double delay)
     {
         Event ev = new Event("Delay", EventLoop);
         ev.Notify(delay);
-        
+
         return ev;
     }
 }

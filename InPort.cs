@@ -1,7 +1,8 @@
-class InPort<DataT>
+
+public class InPort<DataT> : IInPort<DataT>
 {
     public string Name { get; }
-    public Event Updated { get; }
+    public IEvent Updated { get; }
 
     public DataT? Data { get; protected set; }
 
@@ -12,13 +13,13 @@ class InPort<DataT>
         System.Console.WriteLine("Received data " + Data);
     }
 
-    public InPort(string name, EventLoop el) 
+    public InPort(string name, EventLoop el)
     {
         Name = name;
-        Updated = new Event(name+".Updated", el);
+        Updated = new Event(name + ".Updated", el);
     }
 
-    public void Bind(OutPort<DataT> source)
+    public void Bind(IOutPort<DataT> source)
     {
         // subscribe to the source port's Updated event
         source.Updated += OnUpdated;
