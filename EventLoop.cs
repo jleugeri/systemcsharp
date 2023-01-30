@@ -39,6 +39,13 @@ public class EventLoop : IEventLoop
             ImmediateAction += ev.StaticSensitivity;
     }
 
+    public void Reset()
+    {
+        SimulationTime = 0.0;
+        ImmediateAction = null;
+        Queue.Clear();
+    }
+
     public void Run()
     {
         // Run event-loop until completion
@@ -70,7 +77,7 @@ public class EventLoop : IEventLoop
                     break;
             }
 
-            System.Console.WriteLine("Proceeded to time " + SimulationTime);
+            //System.Console.WriteLine("Proceeded to time " + SimulationTime);
 
             /*** Evaluation phase ***/
             //Execute the selected actions

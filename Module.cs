@@ -1,12 +1,15 @@
 
-public class Module : IModule
+public abstract class Module : IModule
 {
-    protected IEventLoop EventLoop;
+    public IEventLoop EventLoop { get; protected set; }
 
     protected double SimulationTime { get { return EventLoop.SimulationTime; } }
 
-    public Module(IEventLoop eventloop)
+    public string Name { get; }
+
+    public Module(string name, IEventLoop eventloop)
     {
+        Name = name;
         EventLoop = eventloop;
     }
 
@@ -17,4 +20,6 @@ public class Module : IModule
 
         return ev;
     }
+
+    public abstract void Reset();
 }

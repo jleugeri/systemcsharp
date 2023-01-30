@@ -1,8 +1,7 @@
 
-public class OutPort<DataT> : IOutPort<DataT>
+public class OutPort<DataT> : Module, IOutPort<DataT>
 {
-    public string Name { get; }
-
+    protected DataT _initialData;
     protected DataT _data;
     public DataT Data
     {
@@ -18,9 +17,14 @@ public class OutPort<DataT> : IOutPort<DataT>
             Updated(Data);
     }
 
-    public OutPort(string name, DataT initialData)
+    public OutPort(string name, DataT initialData, IEventLoop eventLoop) : base(name, eventLoop)
     {
-        Name = name;
-        _data = initialData;
+        _initialData = initialData;
+        _data = _initialData;
+    }
+
+    public override void Reset()
+    {
+        _data = _initialData;
     }
 }

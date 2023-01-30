@@ -17,6 +17,11 @@ public interface IEvent
     ///</summary>
     Action? DynamicSensitivity { get; set; }
 
+    ///<summary>
+    ///Holds a reference to the event-loop that this event is scheduled on.
+    ///</summary>
+    IEventLoop EventLoop { get; }
+
     ///<summary>Name of the event.</summary>
     string Name { get; }
 

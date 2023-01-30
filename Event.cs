@@ -5,6 +5,19 @@ using System.Runtime.CompilerServices;
 ///</summary>
 public class Event : IEvent
 {
+    public static Event Any(List<IEvent> events, IEventLoop eventLoop)
+    {
+        Event e = new("Any-Event", eventLoop);
+
+        foreach(var other in events)
+        {
+            other.StaticSensitivity += e.Notify;
+        }
+
+        return e;
+    }
+
+
     public Action? StaticSensitivity { get; set; }
 
 
@@ -12,7 +25,7 @@ public class Event : IEvent
 
     public string Name { get; }
 
-    protected IEventLoop EventLoop;
+    public IEventLoop EventLoop { get; protected set; }
 
     public Event(string name, IEventLoop eventLoop)
     {

@@ -10,4 +10,6 @@ public interface IEventLoop
     void Notify(IEvent ev, double dt);
     void Notify(IEvent ev);
     void Run();
+
+    void Reset();
 }
