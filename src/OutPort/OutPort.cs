@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 
 public class OutPort<DataT> : Module, IOutPort<DataT>
 {

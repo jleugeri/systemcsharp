@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 using System.Collections;
 public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 {
@@ -12,7 +13,8 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
         Times = new();
         Values = new();
 
-        Trace(signal);
+        if(signal != null)
+            Trace(signal);
     }
 
     public void Trace(ISignal<T>? signal = null)

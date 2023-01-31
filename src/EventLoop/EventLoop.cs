@@ -1,9 +1,11 @@
+namespace SystemCSharp;
 ///<summary>
 ///Basic implementation of IEventLoop that can schedule IEvents.
 ///</summary>
 public class EventLoop : IEventLoop
 {
     Action? ImmediateAction;
+    Action? UpdateAction;
 
     public double SimulationTime { get; private set; }
     public int Count { get { return Queue.Count; } }
@@ -39,6 +41,11 @@ public class EventLoop : IEventLoop
             ImmediateAction += ev.StaticSensitivity;
     }
 
+    public void RequestUpdate(IUpdate obj)
+    {
+        UpdateAction += obj.ApplyUpdate;
+    }
+
     public void Reset()
     {
         SimulationTime = 0.0;
@@ -46,8 +53,21 @@ public class EventLoop : IEventLoop
         Queue.Clear();
     }
 
+    public void UpdatePhase()
+    {
+        // Execute all updates
+        if(UpdateAction != null)
+            UpdateAction();
+
+        // Clear list of pending updates
+        UpdateAction = null;
+    }
+
     public void Run()
     {
+        // Run initial update phase
+        UpdatePhase();
+
         // Run event-loop until completion
         while (Count > 0)
         {
@@ -91,7 +111,7 @@ public class EventLoop : IEventLoop
             } while (ImmediateAction != null);
 
             /*** Update phase ***/
-
+            UpdatePhase();
 
         }
     }

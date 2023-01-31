@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 
 public abstract class Module : IModule
 {

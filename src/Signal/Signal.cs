@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public class Signal<DataT> : ISignal<DataT> where DataT : IEquatable<DataT>
 {
     public string Name { get; }

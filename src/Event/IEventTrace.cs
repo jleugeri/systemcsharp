@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public interface IEventTrace : IEnumerable<double>
 {
     string Name { get; }

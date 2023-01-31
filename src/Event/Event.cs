@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+namespace SystemCSharp;
+
 ///<summary>
 /// A basic implementation of IEvent that can be awaited for simulation of asynchronous systems.
 ///</summary>

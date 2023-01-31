@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+namespace SystemCSharp;
 
 public interface IEventAwaiter : INotifyCompletion
 {

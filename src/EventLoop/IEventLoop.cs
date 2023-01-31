@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 
 ///<summary>
 ///An IEventLoop can schedule IEvents
@@ -10,6 +11,7 @@ public interface IEventLoop
     void Notify(IEvent ev, double dt);
     void Notify(IEvent ev);
     void Run();
+    void RequestUpdate(IUpdate obj);
 
     void Reset();
 }

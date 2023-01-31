@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public interface ISignalTrace<T> : IEnumerable<(double Time, T Value)> where T : IEquatable<T>
 {
     string Name { get; }

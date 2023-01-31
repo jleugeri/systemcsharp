@@ -1,4 +1,5 @@
 using System.Collections;
+namespace SystemCSharp;
 
 public class EventTrace : IEventTrace
 {
@@ -37,6 +38,9 @@ public class EventTrace : IEventTrace
 
     public void Add(double time)
     {
+        if(Times.Count>0 && Times.Last() > time)
+            throw new ArgumentException("Times in trace must always increase!");
+            
         Times.Add(time);
     }
 

@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public interface IModule
 {
     IEventLoop EventLoop { get; }

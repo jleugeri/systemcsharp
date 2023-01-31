@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+namespace SystemCSharp;
 
 ///<summary>
 /// An IEvent can be notified with delay and awaited for simulation of asynchronous systems.

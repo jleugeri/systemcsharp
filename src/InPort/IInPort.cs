@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public interface IInPort<DataT>
 {
     string Name { get; }

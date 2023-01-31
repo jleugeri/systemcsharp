@@ -1,3 +1,4 @@
+namespace SystemCSharp;
 public interface IOutPort<DataT>
 {
     string Name { get; }
