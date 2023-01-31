@@ -28,6 +28,10 @@ jobs:
     - name: Execute unit tests
       run: dotnet test
 
+    # Compile
+    - name: Execute unit tests
+      run: dotnet build --configuration Release
+
     # Build debug and release versions
     - name: Restore the application
       run: dotnet pack --configuration Release
