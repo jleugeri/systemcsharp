@@ -38,8 +38,8 @@ jobs:
 
     # Actually publish the result on github packages
     - name: Publish nuget on GitHub
-      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/jleugeri/index.json
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/jleugeri/index.json
     
     # Publish the result on NuGet.org repository
     - name: Publish nuget on NuGet.org
-      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" -k ${{ secrets.NUGET_ORG_API_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --skip-duplicate -k ${{ secrets.NUGET_ORG_API_KEY }} -s https://api.nuget.org/v3/index.json
