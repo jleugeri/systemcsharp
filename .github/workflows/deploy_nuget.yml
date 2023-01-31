@@ -36,16 +36,10 @@ jobs:
     - name: Restore the application
       run: dotnet pack --configuration Release
 
-    # Get authentication
-    - name: Authenticate with github packages repository
-      run: 
-        dotnet nuget add source --username jleugeri --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github 
-        dotnet nuget add source --username NeuroMan --password ${{ secrets.NUGET_ORG_API_KEY }} --store-password-in-clear-text --name nuget
-
     # Actually publish the result on github packages
     - name: Publish nuget on GitHub
-      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --source "github"
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/jleugeri/index.json
     
     # Publish the result on NuGet.org repository
     - name: Publish nuget on NuGet.org
-      run: dotnet nuget push push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --source "nuget"
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" -k ${{ secrets.NUGET_ORG_API_KEY }} -s https://api.nuget.org/v3/index.json
