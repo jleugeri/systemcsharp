@@ -1,7 +1,6 @@
 namespace SystemCSharp;
-///<summary>
-///Basic implementation of IEventLoop that can schedule IEvents.
-///</summary>
+using Serilog;
+
 public class EventLoop : IEventLoop
 {
     protected Action? ImmediateAction;
@@ -80,6 +79,7 @@ public class EventLoop : IEventLoop
             {
                 //advance to next event
                 (IEvent ev, SimulationTime) = Queue.Dequeue();
+                Log.Logger.Verbose("Event Loop: Executing at {name} at time {time}.", ev.Name, SimulationTime);
 
                 // queue all dynamically scheduled actions
                 if (ev.DynamicSensitivity != null)

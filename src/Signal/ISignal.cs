@@ -24,6 +24,16 @@ public interface ISignal<DataT> : IUpdate where DataT : IEquatable<DataT>
     Event Changed { get; }
     
     ///<summary>
+    ///Flag thas is set whenver the values have been updated, regardless of whether the value actually changed.
+    ///</summary>
+    bool WasUpdated { get; set; }
+    
+    ///<summary>
+    ///Flag that is set whenver the values have been changed by an update.
+    ///</summary>
+    bool WasChanged { get; set; }
+    
+    ///<summary>
     ///The current value of the signal
     ///</summary>
     DataT Value { get; set; }

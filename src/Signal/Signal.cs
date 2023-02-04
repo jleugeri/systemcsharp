@@ -1,9 +1,13 @@
 namespace SystemCSharp;
+using Serilog;
 public class Signal<DataT> : ISignal<DataT> where DataT : IEquatable<DataT>
 {
     public string Name { get; }
     public Event Changed { get; }
     public Event Updated { get; }
+
+    public bool WasChanged { get; set; }
+    public bool WasUpdated { get; set; }
 
     protected DataT Initial;
 
@@ -14,6 +18,8 @@ public class Signal<DataT> : ISignal<DataT> where DataT : IEquatable<DataT>
         Name = name;
         Changed = new(name + ".Changed", eventLoop);
         Updated = new(name + ".Updated", eventLoop);
+        WasChanged = false;
+        WasUpdated = false;
         _value = initial;
         _nextValue = initial;
         Initial = initial;
@@ -41,10 +47,15 @@ public class Signal<DataT> : ISignal<DataT> where DataT : IEquatable<DataT>
     {
 
         if (!_value.Equals(_nextValue))
+        {
+            WasChanged = true;
             Changed.Notify(0.0);
+        }
 
+        WasUpdated = true;
         Updated.Notify(0.0);
         _value = _nextValue;
+        Log.Logger.Verbose("Signal '{name}': Setting value from {oldValue} to {value} (Updated: {updated} Changed: {changed}) at time {time}.", Name, _value, _nextValue, WasUpdated, WasChanged, EventLoop.SimulationTime);
     }
 
     public void Reset()

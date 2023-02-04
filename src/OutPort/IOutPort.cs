@@ -9,6 +9,11 @@ public interface IOutPort<DataT> where DataT: IEquatable<DataT>
     ///Name of the port
     ///</summary>
     string Name { get; }
+    
+    ///<summary>
+    ///Gives access to the internal signal.
+    ///</summary>
+    Signal<DataT> Signal { get; }
 
     ///<summary>
     ///Data present on the port. Write to this property to send data to any connected input ports.

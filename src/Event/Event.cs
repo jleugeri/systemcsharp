@@ -22,7 +22,6 @@ public class Event : IEvent
 
     public Action? StaticSensitivity { get; set; }
 
-
     public Action? DynamicSensitivity { get; set; }
 
     public string Name { get; }

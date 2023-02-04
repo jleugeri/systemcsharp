@@ -1,22 +1,21 @@
 namespace SystemCSharp;
 
-public class OutPort<DataT> : Module, IOutPort<DataT> where DataT: IEquatable<DataT>
+public class OutPort<DataT> : Module, IOutPort<DataT> where DataT : IEquatable<DataT>
 {
-    protected Signal<DataT> _data;
-    public DataT Value { get { return _data.Value; } set { _data.Value=value; } }
-
+    public DataT Value { get { return Signal.Value; } set { Signal.Value = value; } }
+    public Signal<DataT> Signal { get; }
     public OutPort(string name, DataT initialData, IEventLoop eventLoop) : base(name, eventLoop)
     {
-        _data = new(name+".Signal", initialData, eventLoop);
+        Signal = new(name + ".Signal", initialData, eventLoop);
     }
 
     public override void Reset()
     {
-        _data.Reset();
+        Signal.Reset();
     }
 
     public void Bind(IInPort<DataT> other)
     {
-        other.Bind(_data);
+        other.Bind(Signal);
     }
 }

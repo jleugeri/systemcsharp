@@ -1,8 +1,20 @@
 namespace test;
 using SystemCSharp;
+using Serilog;
+using Xunit.Abstractions;
 
 public class BasicTests
 {
+
+    public BasicTests(ITestOutputHelper output)
+    {
+        Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.TestOutput(output, Serilog.Events.LogEventLevel.Verbose)
+                .CreateLogger()
+                .ForContext<BasicTests>();    
+    }
+
     int x = 0;
     void CountFun()
     {
@@ -109,20 +121,53 @@ public class BasicTests
     public void PortTests()
     {
         EventLoop el = new();
-        OutPort<string> p1 = new("Out-Port", "Huh?", el);
-        InPort<string> p2 = new("In-Port", el);
+        OutPort<string> p1 = new("Out-Port1", "Huh?", el);
+        OutPort<string> p2 = new("Out-Port2", "Huh?", el);
+        InPort<string> p3 = new("In-Port1", el);
+        InPort<string> p4 = new("In-Port2", el);
 
-        p2.Bind(p1);
+        p3.Bind(p1);
+        p4.Bind(p2);
 
-        EventTrace et = new("Trace for p2", p2.Updated);
+        SignalTrace<string> et1 = new("Trace for p3", p3.Signal);
+        SignalTrace<string> et2 = new("Trace for p4", p4.Signal, true);
+    
+        SignalTrace<string> et3 = new("Second Trace for p4", p4.Signal, false);
 
         p1.Value = "SECRET!";
+        p2.Value = "Huh?";
 
-        Assert.Equal("Huh?", p2.Value); // this should return the initial value, because the event-loop hasn't run yet!
+        Assert.Equal("Huh?", p3.Value); // this should return the initial value, because the event-loop hasn't run yet!
+        Assert.Equal("Huh?", p4.Value); // this should return the initial value, because the event-loop hasn't run yet!
 
         el.Run();
-        Assert.Equal("SECRET!", p2.Value); // this should work now, because the event-loop has run now!
-        Assert.Equal(new List<double>{0.0}, et.Times); // Make sure that the update is also called
+        
+        Assert.Equal("SECRET!", p3.Value); // this should work now, because the event-loop has run now!
+        Assert.Equal("Huh?", p4.Value); // this should work now, because the event-loop has run now!
+
+        Assert.True(p3.WasChanged);
+        Assert.True(p3.WasUpdated);
+        Assert.False(p4.WasChanged);
+        Assert.True(p4.WasUpdated);
+
+        Assert.Equal(new List<double>{0.0,0.0}, et1.Times); // Make sure that the update is also called
+        Assert.Equal(new List<double>{0.0,0.0}, et2.Times); // Make sure that the update is also called
+        Assert.Equal(new List<double>{0.0}, et3.Times); // Make sure that the update not called
+        Assert.Equal(new List<string>{"Huh?","SECRET!"}, et1.Values); // Make sure that the update is also called
+        Assert.Equal(new List<string>{"Huh?","Huh?"}, et2.Values); // Make sure that the update is also called
+        Assert.Equal(new List<string>{"Huh?"}, et3.Values); // Make sure that the update is not called
+
+        // make sure we can also reset the flags
+        p3.WasChanged = false;
+        p3.WasUpdated = false;
+        p4.WasChanged = false;
+        p4.WasUpdated = false;
+
+        Assert.False(p3.WasChanged);
+        Assert.False(p3.WasUpdated);
+        Assert.False(p4.WasChanged);
+        Assert.False(p4.WasUpdated);
+
     }
 
     class MyModule1 : Module

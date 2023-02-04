@@ -11,6 +11,12 @@ public interface IInPort<DataT> where DataT: IEquatable<DataT>
     string Name { get; }
 
     ///<summary>
+    ///Gives access to the internally bound signal.
+    ///Note: this property can only be accessed after the port has been bound to an output port!
+    ///</summary>
+    Signal<DataT> Signal { get; }
+
+    ///<summary>
     ///This event is called whenever the internal signal is updated, regardless of whether the value changed.
     ///Note: this property can only be accessed after the port has been bound to an output port!
     ///</summary>
@@ -21,6 +27,18 @@ public interface IInPort<DataT> where DataT: IEquatable<DataT>
     ///Note: this property can only be accessed after the port has been bound to an output port!
     ///</summary>
     IEvent Changed { get; }
+
+    ///<summary>
+    ///This flag is set whenever the internal signal is updated, regardless of whether the value changed.
+    ///Note: this property can only be accessed after the port has been bound to an output port!
+    ///</summary>
+    bool WasUpdated { get; set; }
+
+    ///<summary>
+    ///This flag is set whenever whenever the internal signal is changed.
+    ///Note: this property can only be accessed after the port has been bound to an output port!
+    ///</summary>
+    bool WasChanged { get; set; }
 
     ///<summary>
     ///The value of the internal signal. This is tied to the values sent by any connected output port.

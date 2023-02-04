@@ -1,9 +1,11 @@
 namespace SystemCSharp;
 using System.Collections;
+using Serilog;
+
 public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 {
     public string Name { get; protected set; }
-    public ISignal<T>? Signal { get; protected set; } = null;
+    public ISignal<T>? Signal { get; protected set; }
     public List<double> Times { get; protected set; }
     public List<T> Values { get; protected set; }
     public bool TraceAllUpdates { get; protected set; }
@@ -13,10 +15,11 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
         Name = name;
         Times = new();
         Values = new();
+        Signal = null;
+        TraceAllUpdates = traceAllUpdates;
 
         Trace(signal);
 
-        TraceAllUpdates = traceAllUpdates;
     }
 
     public void Trace(ISignal<T>? signal = null)
@@ -26,19 +29,27 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 
         if (oldSignal != null && oldSignal != Signal)
         {
-            if(TraceAllUpdates)
+            if (TraceAllUpdates)
+            {
                 oldSignal.Updated.StaticSensitivity -= RecordSignal;
+            }
             else
+            {
                 oldSignal.Changed.StaticSensitivity -= RecordSignal;
+            }
         }
 
         if (Signal != null && Signal != oldSignal)
         {
-            if(TraceAllUpdates)
+            if (TraceAllUpdates)
+            {
                 Signal.Updated.StaticSensitivity += RecordSignal;
+            }
             else
+            {
                 Signal.Changed.StaticSensitivity += RecordSignal;
-            
+            }
+
             // Initialize
             RecordSignal();
         }
@@ -47,8 +58,9 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 
     public void RecordSignal()
     {
-        if(Signal != null)
-            Record(Signal.Changed.EventLoop.SimulationTime, Signal.Value);
+        Log.Logger.Verbose("Trace '{name}': Recording value {value} at time {time}.", Name, Signal.Value, Signal!.Updated.EventLoop.SimulationTime);
+        if (Signal != null)
+            Record(Signal.Updated.EventLoop.SimulationTime, Signal.Value);
     }
 
     public void Record(double time, T value)
@@ -61,7 +73,7 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
     {
         Times.Clear();
         Values.Clear();
-        if(Signal != null)
+        if (Signal != null)
             RecordSignal();
     }
 
