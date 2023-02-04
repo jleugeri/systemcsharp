@@ -33,7 +33,7 @@ jobs:
     - name: Display SemVer
       run: |
         echo "SemVer: $GITVERSION_SEMVER"
-        echo "NuGetVer: $NuGetVersion"
+        echo "NuGetVer: $GITVERSION_NuGetVersion"
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
