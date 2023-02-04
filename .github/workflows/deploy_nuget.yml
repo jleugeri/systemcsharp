@@ -28,12 +28,13 @@ jobs:
         versionSpec: '5.x'
     
     - name: Determine Version
+      id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.7
     
     - name: Display SemVer
       run: |
-        echo "SemVer: $GITVERSION_SEMVER"
-        echo "NuGetVer: $GITVERSION_NuGetVersion"
+        echo "SemVer: ${{steps.gitversion.outputs.semVer}}"
+        echo "NuGetVer: ${{steps.gitversion.outputs.nuGetVersion}}"
 
     # Execute all unit tests in the solution
     #- name: Execute unit tests
