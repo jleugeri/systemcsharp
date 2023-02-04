@@ -1,6 +1,4 @@
 name: Build & publish nuget
-env:
-  VERSION: "*.*.*"
   
 on:
   push:
@@ -23,6 +21,19 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.15
+      with:
+        versionSpec: '5.x'
+    
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v0.9.7
+    
+    - name: Display SemVer
+      run: |
+        echo "SemVer: $GITVERSION_SEMVER"
+        echo "NuGetVer: $NuGetVersion"
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
@@ -34,12 +45,12 @@ jobs:
 
     # Build debug and release versions
     - name: Restore the application
-      run: dotnet pack --configuration Release
+      run: dotnet pack --configuration Release -p:Version=$NuGetVersion projectToPack.csproj
 
     # Actually publish the result on github packages
     - name: Publish nuget on GitHub
-      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/jleugeri/index.json
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$NuGetVersion.nupkg" --skip-duplicate -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/jleugeri/index.json
     
     # Publish the result on NuGet.org repository
     - name: Publish nuget on NuGet.org
-      run: dotnet nuget push "src/bin/Release/SystemCSharp.$VERSION.nupkg" --skip-duplicate -k ${{ secrets.NUGET_ORG_API_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push "src/bin/Release/SystemCSharp.$NuGetVersion.nupkg" --skip-duplicate -k ${{ secrets.NUGET_ORG_API_KEY }} -s https://api.nuget.org/v3/index.json
