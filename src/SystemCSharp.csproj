@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <PackageId>SystemCSharp</PackageId>
-    <Version>0.5.1</Version>
     <Authors>Johannes Leugering</Authors>
     <OutputType>Library</OutputType>
     <TargetFramework>net7.0</TargetFramework>
