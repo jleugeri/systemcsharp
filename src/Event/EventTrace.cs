@@ -33,10 +33,10 @@ public class EventTrace : IEventTrace
 
     private void AddFromEvent()
     {
-        Add(Event!.EventLoop.SimulationTime);
+        Record(Event!.EventLoop.SimulationTime);
     }
 
-    public void Add(double time)
+    public void Record(double time)
     {
         if(Times.Count>0 && Times.Last() > time)
             throw new ArgumentException("Times in trace must always increase!");

@@ -4,13 +4,13 @@ namespace SystemCSharp;
 ///</summary>
 public class EventLoop : IEventLoop
 {
-    Action? ImmediateAction;
-    Action? UpdateAction;
+    protected Action? ImmediateAction;
+    protected Action? UpdateAction;
 
-    public double SimulationTime { get; private set; }
+    public double SimulationTime { get; protected set; }
     public int Count { get { return Queue.Count; } }
 
-    private PriorityQueue<Tuple<IEvent, double>, double> Queue;
+    protected PriorityQueue<Tuple<IEvent, double>, double> Queue;
 
     public EventLoop()
     {
@@ -50,6 +50,7 @@ public class EventLoop : IEventLoop
     {
         SimulationTime = 0.0;
         ImmediateAction = null;
+        UpdateAction = null;
         Queue.Clear();
     }
 

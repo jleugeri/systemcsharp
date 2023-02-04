@@ -116,12 +116,12 @@ public class BasicTests
 
         EventTrace et = new("Trace for p2", p2.Updated);
 
-        p1.Data = "SECRET!";
+        p1.Value = "SECRET!";
 
-        Assert.Null(p2.Data); // this shouldn't work, because the event-loop hasn't run yet!
+        Assert.Equal("Huh?", p2.Value); // this should return the initial value, because the event-loop hasn't run yet!
 
         el.Run();
-        Assert.Equal("SECRET!", p2.Data); // this should work, because the event-loop has run now!
+        Assert.Equal("SECRET!", p2.Value); // this should work now, because the event-loop has run now!
         Assert.Equal(new List<double>{0.0}, et.Times); // Make sure that the update is also called
     }
 
@@ -145,10 +145,10 @@ public class BasicTests
             {
                 ev1.Notify(0.3);
                 await Delay(0.7);
-                logger.Add(SimulationTime, "A");
-                p1.Data = "Test Message";           
+                logger.Record(SimulationTime, "A");
+                p1.Value = "Test Message";           
                 await Delay(5.0);
-                logger.Add(SimulationTime, "B");
+                logger.Record(SimulationTime, "B");
             }
         }
 
@@ -177,11 +177,11 @@ public class BasicTests
             while (true)
             {
                 await ev1;
-                logger.Add(SimulationTime, "A");
+                logger.Record(SimulationTime, "A");
                 await p2.Updated;
-                logger.Add(SimulationTime, "B: "+p2.Data);
+                logger.Record(SimulationTime, "B: "+p2.Value);
                 await ev1;
-                logger.Add(SimulationTime, "C");
+                logger.Record(SimulationTime, "C");
             }
         }
         public override void Reset()
@@ -203,19 +203,19 @@ public class BasicTests
             el.Run();
 
             SignalTrace<string> Ref1 = new("Reference");
-            Ref1.Add(0.7, "A");
-            Ref1.Add(5.7, "B");
-            Ref1.Add(6.4, "A");
-            Ref1.Add(11.4, "B");
-            Ref1.Add(12.1, "A");
-            Ref1.Add(17.1, "B");
+            Ref1.Record(0.7, "A");
+            Ref1.Record(5.7, "B");
+            Ref1.Record(6.4, "A");
+            Ref1.Record(11.4, "B");
+            Ref1.Record(12.1, "A");
+            Ref1.Record(17.1, "B");
 
             SignalTrace<string> Ref2 = new("Reference");
-            Ref2.Add(0.3, "A");
-            Ref2.Add(0.7, "B: Test Message");
-            Ref2.Add(6.0, "C");
-            Ref2.Add(11.7, "A");
-            Ref2.Add(12.1, "B: Test Message");
+            Ref2.Record(0.3, "A");
+            Ref2.Record(0.7, "B: Test Message");
+            Ref2.Record(6.0, "C");
+            Ref2.Record(11.7, "A");
+            Ref2.Record(12.1, "B: Test Message");
 
             foreach(var ((t1,v1),(t2,v2)) in Enumerable.Zip(Ref1, mod1.logger))
             {

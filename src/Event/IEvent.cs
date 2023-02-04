@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 namespace SystemCSharp;
 
 ///<summary>
-/// An IEvent can be notified with delay and awaited for simulation of asynchronous systems.
+/// An IEvent can be notified (with delay) and awaited for during the simulation of an asynchronous system.
 ///</summary>
 public interface IEvent
 {

@@ -6,15 +6,17 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
     public ISignal<T>? Signal { get; protected set; } = null;
     public List<double> Times { get; protected set; }
     public List<T> Values { get; protected set; }
+    public bool TraceAllUpdates { get; protected set; }
 
-    public SignalTrace(string name, ISignal<T>? signal = null)
+    public SignalTrace(string name, ISignal<T>? signal = null, bool traceAllUpdates = true)
     {
         Name = name;
         Times = new();
         Values = new();
 
-        if(signal != null)
-            Trace(signal);
+        Trace(signal);
+
+        TraceAllUpdates = traceAllUpdates;
     }
 
     public void Trace(ISignal<T>? signal = null)
@@ -24,24 +26,32 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 
         if (oldSignal != null && oldSignal != Signal)
         {
-            oldSignal.Changed.StaticSensitivity -= AddFromSignal;
+            if(TraceAllUpdates)
+                oldSignal.Updated.StaticSensitivity -= RecordSignal;
+            else
+                oldSignal.Changed.StaticSensitivity -= RecordSignal;
         }
 
         if (Signal != null && Signal != oldSignal)
         {
-            Signal.Changed.StaticSensitivity += AddFromSignal;
+            if(TraceAllUpdates)
+                Signal.Updated.StaticSensitivity += RecordSignal;
+            else
+                Signal.Changed.StaticSensitivity += RecordSignal;
+            
+            // Initialize
+            RecordSignal();
         }
 
-        // Initialize
-        AddFromSignal();
     }
 
-    private void AddFromSignal()
+    public void RecordSignal()
     {
-        Add(Signal!.Changed.EventLoop.SimulationTime, Signal.Value);
+        if(Signal != null)
+            Record(Signal.Changed.EventLoop.SimulationTime, Signal.Value);
     }
 
-    public void Add(double time, T value)
+    public void Record(double time, T value)
     {
         Times.Add(time);
         Values.Add(value);
@@ -52,7 +62,7 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
         Times.Clear();
         Values.Clear();
         if(Signal != null)
-            Add(0.0, Signal.Initial);
+            RecordSignal();
     }
 
     public IEnumerator<(double Time, T Value)> GetEnumerator()

@@ -16,7 +16,7 @@ public abstract class Module : IModule
 
     public IEvent Delay(double delay)
     {
-        Event ev = new Event("Delay", EventLoop);
+        Event ev = new Event(Name+".Delay", EventLoop);
         ev.Notify(delay);
 
         return ev;
