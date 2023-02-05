@@ -29,6 +29,7 @@ public class BasicTests
         Event ev1 = new("Event 1", loop);
         Event ev2 = new("Event 2", loop);
         Event ev3 = new("Event 3", loop);
+        Event ev4 = Event.Any(new List<IEvent>{ev1, ev2, ev3}, loop);
 
         ev1.Notify(1.0);
         ev2.Notify(2.0);
@@ -46,24 +47,24 @@ public class BasicTests
 
         EventTrace tr1 = new("Trace for ev1", ev1);
         EventTrace tr2 = new("Trace for ev2", ev2);
+        EventTrace tr4 = new("Trace for ev4", ev4);
 
         loop.Run();
 
         Assert.Equal(1+1+2*2, x); // test that all three events were triggered
 
-        Assert.Single(tr1.Times); // make sure that the event was only triggered once
-        Assert.Single(tr2.Times); // make sure that the event was only triggered once
-
-        Assert.Equal(1.0, tr1.Times.Last()); // make sure the event was triggered at the right time
-        Assert.Equal(2.0, tr2.Times.Last()); // make sure the event was triggered at the right time
+        Assert.Equal(new List<double>{1.0}, tr1.Times); // make sure the event was triggered at the right time
+        Assert.Equal(new List<double>{2.0}, tr2.Times); // make sure the event was triggered at the right time
+        Assert.Equal(new List<double>{1.0,2.0,3.0}, tr4.Times); // make sure the event was triggered at the right time
 
         // Continue event loop at time 3.0
         ev1.Notify(5.0);
         ev2.Notify(5.0);
+
         loop.Run();
 
-        Assert.Equal(2, tr1.Times.Count);    // new event was recorded for ev1 (static sensitivity)
-        Assert.Equal(2, tr2.Times.Count);    // no new event was recorded for ev1 (dynamic sensitivity)
+        Assert.Equal(2, tr1.Times.Count);
+        Assert.Equal(2, tr2.Times.Count);
         Assert.Equal(3+5.0, tr1.Times.Last()); // time should now be 3.0 + 5.0
 
         
@@ -75,6 +76,8 @@ public class BasicTests
         // Reset & continue event loop at time 0.0
         loop.Reset();
         tr1.Clear();
+        tr2.Clear();
+        tr4.Clear();
         ev1.Notify(5.0);
         loop.Run(); // This should now work, because the trace has been cleared
 

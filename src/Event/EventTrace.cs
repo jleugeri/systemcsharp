@@ -38,7 +38,7 @@ public class EventTrace : IEventTrace
 
     public void Record(double time)
     {
-        if(Times.Count>0 && Times.Last() > time)
+        if(Times.Count>0 && Times.Last() > time+double.Epsilon)
             throw new ArgumentException("Times in trace must always increase!");
             
         Times.Add(time);

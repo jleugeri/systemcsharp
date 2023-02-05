@@ -54,8 +54,8 @@ public class Signal<DataT> : ISignal<DataT> where DataT : IEquatable<DataT>
 
         WasUpdated = true;
         Updated.Notify(0.0);
-        _value = _nextValue;
         Log.Logger.Verbose("Signal '{name}': Setting value from {oldValue} to {value} (Updated: {updated} Changed: {changed}) at time {time}.", Name, _value, _nextValue, WasUpdated, WasChanged, EventLoop.SimulationTime);
+        _value = _nextValue;
     }
 
     public void Reset()

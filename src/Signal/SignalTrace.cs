@@ -58,9 +58,11 @@ public class SignalTrace<T> : ISignalTrace<T> where T : IEquatable<T>
 
     public void RecordSignal()
     {
-        Log.Logger.Verbose("Trace '{name}': Recording value {value} at time {time}.", Name, Signal.Value, Signal!.Updated.EventLoop.SimulationTime);
         if (Signal != null)
+        {
+            Log.Logger.Verbose("Trace '{name}': Recording value {value} at time {time}.", Name, Signal.Value, Signal!.Updated.EventLoop.SimulationTime);
             Record(Signal.Updated.EventLoop.SimulationTime, Signal.Value);
+        }
     }
 
     public void Record(double time, T value)

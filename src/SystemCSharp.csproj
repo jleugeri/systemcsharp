@@ -8,7 +8,6 @@
     <RootNamespace>systemcsharp</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageDescription>Little simulator utility for event-based simulation in C#, inspired by another library of similar name.</PackageDescription>
     <RepositoryUrl>https://github.com/jleugeri/SystemCSharp</RepositoryUrl>
   </PropertyGroup>
