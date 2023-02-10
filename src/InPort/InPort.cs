@@ -3,25 +3,16 @@ namespace SystemCSharp;
 public class InPort<DataT> : Module, IInPort<DataT> where DataT : IEquatable<DataT>
 {
 
-    protected Signal<DataT>? _data = null;
     protected DataT? nextData = default(DataT);
 
-    public Signal<DataT> Signal
-    {
-        get
-        {
-            if(_data != null)
-                return _data;
-            else throw new InvalidOperationException("Cannot access port before it has been bound.");
-        }
-    }
+    public Signal<DataT>? Signal { get; protected set; }
 
     public DataT Value
     {
         get
         {
-            if(_data != null)
-                return _data.Value;
+            if(Signal != null)
+                return Signal.Value;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
     }
@@ -30,8 +21,8 @@ public class InPort<DataT> : Module, IInPort<DataT> where DataT : IEquatable<Dat
     {
         get
         {
-            if(_data != null)
-                return _data.Changed;
+            if(Signal != null)
+                return Signal.Changed;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
     }
@@ -39,8 +30,8 @@ public class InPort<DataT> : Module, IInPort<DataT> where DataT : IEquatable<Dat
     {
         get
         {
-            if(_data != null)
-                return _data.Updated;
+            if(Signal != null)
+                return Signal.Updated;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
     }
@@ -48,28 +39,28 @@ public class InPort<DataT> : Module, IInPort<DataT> where DataT : IEquatable<Dat
     public bool WasChanged { 
         get
         {
-            if (_data != null)
-                return _data.WasChanged;
+            if (Signal != null)
+                return Signal.WasChanged;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
         
         set
         {
-            if (_data != null) _data.WasChanged = value;
+            if (Signal != null) Signal.WasChanged = value;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
     }
     public bool WasUpdated { 
         get
         {
-            if (_data != null)
-                return _data.WasUpdated;
+            if (Signal != null)
+                return Signal.WasUpdated;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
         
         set
         {
-            if (_data != null) _data.WasUpdated = value;
+            if (Signal != null) Signal.WasUpdated = value;
             else throw new InvalidOperationException("Cannot access port before it has been bound.");
         }
     }
@@ -85,12 +76,12 @@ public class InPort<DataT> : Module, IInPort<DataT> where DataT : IEquatable<Dat
 
     public void Bind(Signal<DataT> source)
     {
-        _data = source;
+        Signal = source;
     }
 
     public void Unbind()
     {
-        _data = null;
+        Signal = null;
     }
 
 

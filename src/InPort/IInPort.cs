@@ -14,7 +14,7 @@ public interface IInPort<DataT> where DataT: IEquatable<DataT>
     ///Gives access to the internally bound signal.
     ///Note: this property can only be accessed after the port has been bound to an output port!
     ///</summary>
-    Signal<DataT> Signal { get; }
+    Signal<DataT>? Signal { get; }
 
     ///<summary>
     ///This event is called whenever the internal signal is updated, regardless of whether the value changed.
