@@ -10,6 +10,9 @@ public class EventLoop : IEventLoop
     public double SimulationTime { get; protected set; }
     public int Count { get { return Queue.Count; } }
 
+    public IEvent Started {get; protected set;}
+
+    public IEvent Completed {get; protected set;}
 
     public EventLoop()
     {
@@ -17,6 +20,8 @@ public class EventLoop : IEventLoop
         ImmediateEvents = new HashSet<IEvent>();
         Updates = new HashSet<IUpdate>();
         Queue = new PriorityQueue<Tuple<IEvent, double>, double>();
+        Started = new Event("StartedEvent", this);
+        Completed = new Event("CompletedEvent", this);
     }
 
 
@@ -79,9 +84,17 @@ public class EventLoop : IEventLoop
         // Run initial update phase
         UpdatePhase();
 
+        // Trigger started event
+        Started.Notify(0.0);
+
+        // if we only processed the completed event during the event loop, 
+        // we should not trigger another completed event to avoid an endless loop
+        bool onlyProcessedCompletedEvent = false;
+
         // Run event-loop until completion
         while (Count > 0)
         {
+
             /*** Timed notification phase ***/
             //Find all actions in the queue to be triggered now.
             currentAction = null;
@@ -90,6 +103,11 @@ public class EventLoop : IEventLoop
             foreach(var ev in ImmediateEvents)
             {
                 Log.Logger.Verbose("Event Loop: Executing immediate event '{name}' at time {time}.", ev.Name, SimulationTime);
+
+                // note if this was something else than the completed event
+                if(ev!=Completed)
+                    onlyProcessedCompletedEvent = false;
+
                 ScheduleForExecution(ev);
             }
             // Clear immediate events now
@@ -101,6 +119,11 @@ public class EventLoop : IEventLoop
                 //advance to next event
                 (IEvent ev, SimulationTime) = Queue.Dequeue();
                 Log.Logger.Verbose("Event Loop: Executing event '{name}' at time {time}.", ev.Name, SimulationTime);
+
+                // note if this was something else than the completed event
+                if(ev!=Completed)
+                    onlyProcessedCompletedEvent = false;
+
                 ScheduleForExecution(ev);
 
                 // break if we ran out of elements to check
@@ -124,6 +147,11 @@ public class EventLoop : IEventLoop
                 foreach(var ev in ImmediateEvents)
                 {
                     Log.Logger.Verbose("Event Loop: Executing immediate event '{name}' in delta cycle {deltaCycle} at time {time}.", ev.Name, deltaCycle, SimulationTime);
+
+                    // note if this was something else than the completed event
+                    if(ev!=Completed)
+                        onlyProcessedCompletedEvent = false;
+
                     ScheduleForExecution(ev);
                 }
                 // Clear immediate events now
@@ -141,7 +169,14 @@ public class EventLoop : IEventLoop
 
             /*** Update phase ***/
             UpdatePhase();
-
+            
+            // If we did anything more than process the completed event this loop, 
+            // and we are now at the end of the queue, then trigger the completed event.
+            if(!onlyProcessedCompletedEvent && Count == 0)
+            {
+                onlyProcessedCompletedEvent = true;
+                Completed.Notify(0.0);
+            }
         }
     }
 

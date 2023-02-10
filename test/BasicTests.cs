@@ -176,19 +176,26 @@ public class BasicTests
     class MyModule1 : Module
     {
         public Task t1;
+        public Task t2;
         public OutPort<string> p1;
         
         public SignalTrace<string> logger;
 
+        public bool WasCompleted = false;
+
         public MyModule1(EventLoop eventLoop, Event ev1) : base("MyModule1", eventLoop)
         {
-            t1 = Process1("t1", ev1);
+            t1 = Process1(ev1);
+            t2 = EndProc();
             p1 = new OutPort<string>("MessageOutPort", "", eventLoop);
             logger = new("Trace");
+
         }
 
-        async Task Process1(string name, Event ev1)
+        async Task Process1(Event ev1)
         {
+            await EventLoop.Started;
+
             while (SimulationTime < 15)
             {
                 ev1.Notify(0.3);
@@ -198,6 +205,12 @@ public class BasicTests
                 await Delay(5.0);
                 logger.Record(SimulationTime, "B");
             }
+        }
+
+        async Task EndProc()
+        {
+            await EventLoop.Completed;
+            WasCompleted = true;
         }
 
         public override void Reset()
@@ -221,7 +234,9 @@ public class BasicTests
 
         async Task Process2(string name, Event ev1)
         {
+            await EventLoop.Started;
             System.Console.WriteLine("Process 2-" + name + ": init ");
+
             while (true)
             {
                 await ev1;
@@ -242,41 +257,47 @@ public class BasicTests
     [Fact]
     public void ModuleTests()
     {
-            EventLoop el = new EventLoop(); 
-            Event ev1 = new Event("ev1", el);
-            MyModule1 mod1 = new MyModule1(el, ev1);
-            MyModule2 mod2 = new MyModule2(el, ev1);
+        EventLoop el = new EventLoop(); 
+        Event ev1 = new Event("ev1", el);
+        MyModule1 mod1 = new MyModule1(el, ev1);
+        MyModule2 mod2 = new MyModule2(el, ev1);
 
-            mod2.p2.Bind(mod1.p1);
-            el.Run();
+        mod2.p2.Bind(mod1.p1);
+        el.Run();
 
-            SignalTrace<string> Ref1 = new("Reference");
-            Ref1.Record(0.7, "A");
-            Ref1.Record(5.7, "B");
-            Ref1.Record(6.4, "A");
-            Ref1.Record(11.4, "B");
-            Ref1.Record(12.1, "A");
-            Ref1.Record(17.1, "B");
 
-            SignalTrace<string> Ref2 = new("Reference");
-            Ref2.Record(0.3, "A");
-            Ref2.Record(0.7, "B: Test Message");
-            Ref2.Record(6.0, "C");
-            Ref2.Record(11.7, "A");
-            Ref2.Record(12.1, "B: Test Message");
+        SignalTrace<string> Ref1 = new("Reference");
+        Ref1.Record(0.7, "A");
+        Ref1.Record(5.7, "B");
+        Ref1.Record(6.4, "A");
+        Ref1.Record(11.4, "B");
+        Ref1.Record(12.1, "A");
+        Ref1.Record(17.1, "B");
 
-            foreach(var ((t1,v1),(t2,v2)) in Enumerable.Zip(Ref1, mod1.logger))
-            {
-                Assert.Equal(t1, t2, 5);
-                Assert.Equal(v1, v2);
-            }
+        SignalTrace<string> Ref2 = new("Reference");
+        Ref2.Record(0.3, "A");
+        Ref2.Record(0.7, "B: Test Message");
+        Ref2.Record(6.0, "C");
+        Ref2.Record(11.7, "A");
+        Ref2.Record(12.1, "B: Test Message");
 
-            
-            foreach(var ((t1,v1),(t2,v2)) in Enumerable.Zip(Ref2, mod2.logger))
-            {
-                Assert.Equal(t1, t2, 5);
-                Assert.Equal(v1, v2);
-            }
+
+        Assert.Equal(Ref1.Count(), mod1.logger.Count());
+        foreach(var ((t1,v1),(t2,v2)) in Enumerable.Zip(Ref1, mod1.logger))
+        {
+            Assert.Equal(t1, t2, 5);
+            Assert.Equal(v1, v2);
+        }
+
+        
+        Assert.Equal(Ref2.Count(), mod2.logger.Count());
+        foreach(var ((t1,v1),(t2,v2)) in Enumerable.Zip(Ref2, mod2.logger))
+        {
+            Assert.Equal(t1, t2, 5);
+            Assert.Equal(v1, v2);
+        }
+
+        Assert.True(mod1.WasCompleted);
 
     }
 }
