@@ -10,13 +10,36 @@ public interface IEvent
     ///Holds all the statically scheduled actions for execution upon 
     ///the next trigger of this event.
     ///</summary>
-    Action? StaticSensitivity { get; set; }
-    
+    event Action StaticSensitivity;
+
     ///<summary>
     ///Holds all the dynamically scheduled actions for execution upon 
     ///the next trigger of this event.
     ///</summary>
-    Action? DynamicSensitivity { get; set; }
+    event Action DynamicSensitivity;
+
+    ///<summary>
+    ///Returns all (dynamic, static or both) subscribers to this event.
+    ///If clear is true, clears the dynamic subscribers afterwards.
+    ///</summary>
+    Action? GetSubscribers(bool dynamicSensitivity=true, bool staticSensitivity=true, bool clear=true);
+
+    ///<summary>
+    ///Invokes all (dynamic, static or both) subscribers to this event.
+    ///If clear is true, clears the dynamic subscribers afterwards.
+    ///</summary>
+    void InvokeSubscribers(bool dynamicSensitivity=true, bool staticSensitivity=true, bool clear=true);
+
+
+    ///<summary>
+    ///Clears all listeners from StaticSensitivity
+    ///</summary>
+    void ClearStaticSensitivity();
+
+    ///<summary>
+    ///Clears all listeners from DynamicSensitivity
+    ///</summary>
+    void ClearDynamicSensitivity();
 
     ///<summary>
     ///Holds a reference to the event-loop that this event is scheduled on.

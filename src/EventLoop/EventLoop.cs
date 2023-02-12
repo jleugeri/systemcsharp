@@ -56,13 +56,12 @@ public class EventLoop : IEventLoop
         // Now "flush" all dynamically pending tasks and let them get cancelled
         foreach(var ev in RegisteredEvents)
         {
-            ev.DynamicSensitivity?.Invoke();
+            ev.InvokeSubscribers(dynamicSensitivity: true, staticSensitivity: false, clear: true);
         }
 
         // Recreate the CancellationTokenSource
-        CancellationTokenSource.TryReset();
-        //CancellationTokenSource.Dispose();
-        //CancellationTokenSource = new();
+        CancellationTokenSource.Dispose();
+        CancellationTokenSource = new();
 
         SimulationTime = 0.0;
         ImmediateEvents.Clear();
@@ -86,21 +85,6 @@ public class EventLoop : IEventLoop
     public void Run()
     {
         Action? currentAction = null;
-
-        void ScheduleForExecution(IEvent ev)
-        {
-
-            // queue all dynamically scheduled actions
-            if (ev.DynamicSensitivity != null)
-                currentAction += ev.DynamicSensitivity;
-
-            // clear all dynamically scheduled actions
-            ev.DynamicSensitivity = null;
-
-            // queue all statically scheduled actions
-            if (ev.StaticSensitivity != null)
-                currentAction += ev.StaticSensitivity;
-        }
 
         // Run initial update phase
         UpdatePhase();
@@ -129,7 +113,7 @@ public class EventLoop : IEventLoop
                 if(ev!=Completed)
                     onlyProcessedCompletedEvent = false;
 
-                ScheduleForExecution(ev);
+                currentAction += ev.GetSubscribers();
             }
             // Clear immediate events now
             ImmediateEvents.Clear();
@@ -145,7 +129,7 @@ public class EventLoop : IEventLoop
                 if(ev!=Completed)
                     onlyProcessedCompletedEvent = false;
 
-                ScheduleForExecution(ev);
+                currentAction += ev.GetSubscribers();
 
                 // break if we ran out of elements to check
                 // or if the next element in queue happens later
@@ -173,7 +157,7 @@ public class EventLoop : IEventLoop
                     if(ev!=Completed)
                         onlyProcessedCompletedEvent = false;
 
-                    ScheduleForExecution(ev);
+                    currentAction += ev.GetSubscribers();
                 }
                 // Clear immediate events now
                 ImmediateEvents.Clear();
@@ -185,6 +169,7 @@ public class EventLoop : IEventLoop
                 // Clear the currently pending actions
                 currentAction = null;
 
+                deltaCycle += 1;
                 // Repeat until there are no more immediately pending actions -> we can move to the next time-stamp
             } while (ImmediateEvents.Count != 0);
 

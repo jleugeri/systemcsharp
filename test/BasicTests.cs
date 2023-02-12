@@ -9,7 +9,7 @@ public class BasicTests
     public BasicTests(ITestOutputHelper output)
     {
         Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
+                .MinimumLevel.Debug()
                 .WriteTo.TestOutput(output, Serilog.Events.LogEventLevel.Verbose)
                 .CreateLogger()
                 .ForContext<BasicTests>();    
@@ -361,16 +361,34 @@ public class BasicTests
         var ev1 = new Event("ev1", el);
         var ev2 = new Event("ev2", el);
 
-        ev1.StaticSensitivity += () => { inp1.Value = 1.0; ev2.Notify(1.0); };
-        ev2.StaticSensitivity += () => inp1.Value = 0.0;
-
         SignalTrace<double> tr1 = new("Voltage trace 1", outp.Signal);
         EventTrace tr2 = new("Spike trace 1", outp.Updated);
+
+        async Task Behavior(string proc)
+        {
+            
+            await el.Started;
+            while(true)
+            {
+                await ev1;
+                inp1.Value = 1.0;
+                ev2.Notify(1.0);
+                await ev2;
+                inp1.Value = 0.0;
+            }
+        }
+        
+        var res = Behavior("First try");
 
         for(int i=0; i<3; i++)
         {
             Log.Information("############################");
             el.Reset();
+
+            // Task was canceled, start again!
+            Assert.Equal(TaskStatus.Canceled, res.Status);
+            res = Behavior($"Try {i}");
+            Assert.Equal(TaskStatus.WaitingForActivation, res.Status);
 
             for(int j=0; j<=i; j++)
             {
@@ -380,6 +398,7 @@ public class BasicTests
             }
             tr1.Clear();
             tr2.Clear();
+
             
             el.Run();
 

@@ -45,9 +45,43 @@ public class Event : IEvent
         return e;
     }
 
-    public Action? StaticSensitivity { get; set; }
+    public event Action? StaticSensitivity;
 
-    public Action? DynamicSensitivity { get; set; }
+    public event Action? DynamicSensitivity;
+
+    public void ClearStaticSensitivity()
+    {
+        StaticSensitivity = null;
+    }
+
+    public void ClearDynamicSensitivity()
+    {
+        DynamicSensitivity = null;
+    }
+
+    public void InvokeSubscribers(bool dynamicSensitivity=true, bool staticSensitivity=true, bool clear=true)
+    {
+        GetSubscribers(dynamicSensitivity,staticSensitivity,clear)?.Invoke();
+    }
+
+    public Action? GetSubscribers(bool dynamicSensitivity=true, bool staticSensitivity=true, bool clear=true)
+    {
+        Action? currentAction = null;
+
+        // queue all dynamically scheduled actions
+        if (dynamicSensitivity)
+            currentAction += DynamicSensitivity;
+
+        // clear all dynamically scheduled actions
+        if(dynamicSensitivity && clear)
+            ClearDynamicSensitivity();
+
+        // queue all statically scheduled actions
+        if (staticSensitivity)
+            currentAction += StaticSensitivity;
+        
+        return currentAction;
+    }
 
     public string Name { get; }
 
