@@ -27,9 +27,25 @@ public interface IEventLoop
     IEvent Completed { get; }
 
     ///<summary>
+    ///Cancellation token that signals when the event loop and all scheduled tasks
+    ///should be canceled.
+    ///</summary>
+    CancellationToken CancellationToken { get; }
+
+    ///<summary>
     ///Returns the number of events currently queued in the event loop
     ///</summary>
     int Count { get; }
+
+    ///<summary>
+    ///Associate an event with this event queue
+    ///</summary>
+    void RegisterEvent(IEvent ev);
+
+    ///<summary>
+    ///Disassociate an event with this event queue
+    ///</summary>
+    void UnregisterEvent(IEvent ev);
 
     ///<summary>
     ///Schedules an event `ev` to be notified with delay `dt`

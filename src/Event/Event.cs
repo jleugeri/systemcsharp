@@ -59,6 +59,7 @@ public class Event : IEvent
         EventLoop = eventLoop;
         StaticSensitivity = null;
         DynamicSensitivity = null;
+        eventLoop.RegisterEvent(this);
     }
 
     public void Notify(double delay)
@@ -118,6 +119,13 @@ public class Event : IEvent
 
         ///<summary>Returns void</summary>
         public void GetResult()
-        { }
+        {
+            // If this was called because we want to cancel the event-loop, 
+            // cancel any still waiting task
+            if(Parent.EventLoop.CancellationToken.IsCancellationRequested)
+            {
+                throw new TaskCanceledException("????????????");
+            }
+        }
     }
 }

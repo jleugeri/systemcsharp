@@ -3,6 +3,8 @@ using Serilog;
 
 public class EventLoop : IEventLoop
 {
+    protected ISet<IEvent> RegisteredEvents;
+
     protected ISet<IEvent> ImmediateEvents;
     protected ISet<IUpdate> Updates;
     protected PriorityQueue<Tuple<IEvent, double>, double> Queue;
@@ -14,9 +16,13 @@ public class EventLoop : IEventLoop
 
     public IEvent Completed {get; protected set;}
 
+    protected CancellationTokenSource CancellationTokenSource = new();
+    public CancellationToken CancellationToken => CancellationTokenSource.Token;
+
     public EventLoop()
     {
         SimulationTime = 0.0;
+        RegisteredEvents = new HashSet<IEvent>();
         ImmediateEvents = new HashSet<IEvent>();
         Updates = new HashSet<IUpdate>();
         Queue = new PriorityQueue<Tuple<IEvent, double>, double>();
@@ -43,6 +49,21 @@ public class EventLoop : IEventLoop
 
     public void Reset()
     {
+        // trigger cancellation token, which should cause all subsequent
+        // calls to GetResult() to fail
+        CancellationTokenSource.Cancel();
+
+        // Now "flush" all dynamically pending tasks and let them get cancelled
+        foreach(var ev in RegisteredEvents)
+        {
+            ev.DynamicSensitivity?.Invoke();
+        }
+
+        // Recreate the CancellationTokenSource
+        CancellationTokenSource.TryReset();
+        //CancellationTokenSource.Dispose();
+        //CancellationTokenSource = new();
+
         SimulationTime = 0.0;
         ImmediateEvents.Clear();
         Updates.Clear();
@@ -180,4 +201,13 @@ public class EventLoop : IEventLoop
         }
     }
 
+    public void RegisterEvent(IEvent ev)
+    {
+        RegisteredEvents.Add(ev);
+    }
+
+    public void UnregisterEvent(IEvent ev)
+    {
+        RegisteredEvents.Remove(ev);
+    }
 }
