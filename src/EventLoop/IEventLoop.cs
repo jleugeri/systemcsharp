@@ -60,7 +60,7 @@ public interface IEventLoop
     ///<summary>
     ///Runs the event loop until completion.
     ///</summary>
-    void Run();
+    void Run(double maximumDuration = double.PositiveInfinity);
     
     ///<summary>
     ///Schedules an update for `obj`

@@ -82,7 +82,7 @@ public class EventLoop : IEventLoop
     }
 
 
-    public void Run()
+    public void Run(double maximumDuration = double.PositiveInfinity)
     {
         Action? currentAction = null;
 
@@ -92,12 +92,8 @@ public class EventLoop : IEventLoop
         // Trigger started event
         Started.Notify(0.0);
 
-        // if we only processed the completed event during the event loop, 
-        // we should not trigger another completed event to avoid an endless loop
-        bool onlyProcessedCompletedEvent = false;
-
         // Run event-loop until completion
-        while (Count > 0)
+        while (Count > 0 && SimulationTime <= maximumDuration)
         {
 
             /*** Timed notification phase ***/
@@ -109,33 +105,20 @@ public class EventLoop : IEventLoop
             {
                 Log.Logger.Verbose("Event Loop: Executing immediate event '{name}' at time {time}.", ev.Name, SimulationTime);
 
-                // note if this was something else than the completed event
-                if(ev!=Completed)
-                    onlyProcessedCompletedEvent = false;
-
                 currentAction += ev.GetSubscribers();
             }
             // Clear immediate events now
             ImmediateEvents.Clear();
 
             // second, take care of queued events
-            while (true)
-            {
+            do {
                 //advance to next event
                 (IEvent ev, SimulationTime) = Queue.Dequeue();
                 Log.Logger.Verbose("Event Loop: Executing event '{name}' at time {time}.", ev.Name, SimulationTime);
 
-                // note if this was something else than the completed event
-                if(ev!=Completed)
-                    onlyProcessedCompletedEvent = false;
-
                 currentAction += ev.GetSubscribers();
-
-                // break if we ran out of elements to check
-                // or if the next element in queue happens later
-                if (Queue.Count == 0 || Queue.Peek().Item2 > SimulationTime)
-                    break;
             }
+            while (Queue.Count > 0 && Queue.Peek().Item2 <= SimulationTime);
 
             Log.Logger.Verbose("Event Loop: Starting evaluation phase for time {time}", SimulationTime);
 
@@ -152,10 +135,6 @@ public class EventLoop : IEventLoop
                 foreach(var ev in ImmediateEvents)
                 {
                     Log.Logger.Verbose("Event Loop: Executing immediate event '{name}' in delta cycle {deltaCycle} at time {time}.", ev.Name, deltaCycle, SimulationTime);
-
-                    // note if this was something else than the completed event
-                    if(ev!=Completed)
-                        onlyProcessedCompletedEvent = false;
 
                     currentAction += ev.GetSubscribers();
                 }
@@ -176,13 +155,12 @@ public class EventLoop : IEventLoop
             /*** Update phase ***/
             UpdatePhase();
             
-            // If we did anything more than process the completed event this loop, 
-            // and we are now at the end of the queue, then trigger the completed event.
-            if(!onlyProcessedCompletedEvent && Count == 0)
-            {
-                onlyProcessedCompletedEvent = true;
-                Completed.Notify(0.0);
-            }
+        }
+        // If we are done here, trigger the completed event.
+        if(Count == 0 || SimulationTime >= maximumDuration)
+        {
+            var completedSubscribers = Completed.GetSubscribers();
+            completedSubscribers?.Invoke();
         }
     }
 

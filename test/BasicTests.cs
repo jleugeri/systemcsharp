@@ -9,7 +9,7 @@ public class BasicTests
     public BasicTests(ITestOutputHelper output)
     {
         Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .WriteTo.TestOutput(output, Serilog.Events.LogEventLevel.Verbose)
                 .CreateLogger()
                 .ForContext<BasicTests>();    
@@ -418,6 +418,79 @@ public class BasicTests
             Assert.Equal(new List<double>{0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0}.Take(1+(i+1)*6), tr1.Values);
 
             Assert.Equal(new List<double>{10.0,11.0,20.0,21.0,30.0,31.0,50.0,51.0,60.0,61.0,70.0,71.0,90.0,91.0,100.0,101.0,110.0,111.0}.Take((i+1)*6), tr2);
+        }
+    }
+
+    
+    [Fact]
+    public void TestMaxDuration()
+    {
+        EventLoop el = new EventLoop();
+
+        var inp1 = new OutPort<double>("out", 0, el);       
+        var outp = new InPort<double>("in", el);    
+
+        inp1.Bind(outp);
+        var ev1 = new Event("ev1", el);
+        var ev2 = new Event("ev2", el);
+
+        SignalTrace<double> tr1 = new("Voltage trace 1", outp.Signal);
+        EventTrace tr2 = new("Spike trace 1", outp.Updated);
+
+        async Task Behavior(string proc)
+        {
+            
+            await el.Started;
+            while(true)
+            {
+                await ev1;
+                inp1.Value = 1.0;
+                ev2.Notify(1.0);
+                await ev2;
+                inp1.Value = 0.0;
+            }
+        }
+        
+        var res = Behavior("First try");
+
+        for(int i=0; i<3; i++)
+        {
+            Log.Information("############################");
+            el.Reset();
+
+            // Task was canceled, start again!
+            Assert.Equal(TaskStatus.Canceled, res.Status);
+            res = Behavior($"Try {i}");
+            Assert.Equal(TaskStatus.WaitingForActivation, res.Status);
+
+            for(int j=0; j<=i; j++)
+            {
+                ev1.Notify(j*40 + 10.0);
+                ev1.Notify(j*40 + 20.0);
+                ev1.Notify(j*40 + 30.0);
+            }
+            tr1.Clear();
+            tr2.Clear();
+
+            
+            el.Run(90.0);
+
+            foreach(var (t,v) in Enumerable.Zip(tr1.Times, tr1.Values))
+            {
+                Log.Information($"@t={t}: {v}");
+            }
+
+            foreach(var t in tr2)
+            {
+                Log.Information($"@t={t}: Spike!");
+            }
+
+
+            Assert.Equal(new List<double>{0.0, 10.0,11.0,20.0,21.0,30.0,31.0,50.0,51.0,60.0,61.0,70.0,71.0,90.0}.Take(1+(i+1)*6), tr1.Times);
+
+            Assert.Equal(new List<double>{0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,1.0,0.0, 1.0, 0.0, 1.0}.Take(1+(i+1)*6), tr1.Values);
+
+            Assert.Equal(new List<double>{10.0,11.0,20.0,21.0,30.0,31.0,50.0,51.0,60.0,61.0,70.0,71.0,90.0}.Take((i+1)*6), tr2);
         }
     }
 }
