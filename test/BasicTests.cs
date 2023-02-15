@@ -493,4 +493,112 @@ public class BasicTests
             Assert.Equal(new List<double>{10.0,11.0,20.0,21.0,30.0,31.0,50.0,51.0,60.0,61.0,70.0,71.0,90.0}.Take((i+1)*6), tr2);
         }
     }
+
+    [Fact]
+    public void SampleTracesTest()
+    {
+        SignalTrace<int> tr0 = new("Empty signal trace", null);
+        SignalTrace<int> tr1 = new("Signal trace", null);
+        EventTrace tr2 = new("Event trace", null);
+        EventTrace tr3 = new("Empty event trace", null);
+ 
+        foreach(var (t,v) in new List<(double,int)>{
+            (1.0,0), 
+            (2.0,0), 
+            (3.0,0), (3.0,0), (3.0,0), 
+            (4.0,0), //nothing happens to the signal until here
+            (5.0,1), (5.0,0), // the signal changes back and forth here
+            (6.0,1), (6.0,2), // here the signal changes twice
+            (7.0,3)
+        })
+        {
+            tr1.Record(t, v);
+            tr2.Record(t);
+        }
+
+        // test the signal traces
+        Assert.Equal(double.NegativeInfinity, tr0.LastChanged(0.5));
+
+        Assert.Equal(double.NegativeInfinity, tr1.LastChanged(0.5));
+        Assert.Equal(1.0, tr1.LastChanged(1.0));
+        Assert.Equal(1.0, tr1.LastChanged(1.5));
+        Assert.Equal(1.0, tr1.LastChanged(2.0));
+        Assert.Equal(1.0, tr1.LastChanged(3.0));
+        Assert.Equal(1.0, tr1.LastChanged(4.0));
+        Assert.Equal(1.0, tr1.LastChanged(5.0));
+        Assert.Equal(1.0, tr1.LastChanged(5.5));
+        Assert.Equal(6.0, tr1.LastChanged(6.0));
+        Assert.Equal(6.0, tr1.LastChanged(6.5));
+        Assert.Equal(7.0, tr1.LastChanged(7.0));
+        Assert.Equal(7.0, tr1.LastChanged(7.5));
+
+        Assert.Throws<IndexOutOfRangeException>(()=>tr0.SampleAt(1.0,false));
+        Assert.Throws<IndexOutOfRangeException>(()=>tr0.SampleAt(1.0,true));
+        Assert.Throws<IndexOutOfRangeException>(()=>tr1.SampleAt(1.0,false));
+        Assert.Equal(0, tr1.SampleAt(1.0,true));
+        
+        Assert.Equal(0, tr1.SampleAt(3.0,false));
+        Assert.Equal(0, tr1.SampleAt(3.0,true));
+
+        Assert.Equal(0, tr1.SampleAt(5.0,false));
+        Assert.Equal(0, tr1.SampleAt(5.0,true));
+
+        Assert.Equal(0, tr1.SampleAt(5.5,false));
+        Assert.Equal(0, tr1.SampleAt(5.5,true));
+
+        Assert.Equal(0, tr1.SampleAt(6.0,false));
+        Assert.Equal(2, tr1.SampleAt(6.0,true));
+
+        Assert.Equal(2, tr1.SampleAt(6.5,false));
+        Assert.Equal(2, tr1.SampleAt(6.5,true));
+
+        Assert.Equal(2, tr1.SampleAt(7.0,false));
+        Assert.Equal(3, tr1.SampleAt(7.0,true));
+
+        Assert.Equal(3, tr1.SampleAt(7.5,false));
+        Assert.Equal(3, tr1.SampleAt(7.5,true));
+
+        // test event trace
+        Assert.True(tr2.SampleAt(1.0));
+        Assert.True(tr2.SampleAt(2.0));
+        Assert.True(tr2.SampleAt(3.0));
+        Assert.True(tr2.SampleAt(4.0));
+        Assert.True(tr2.SampleAt(5.0));
+        Assert.True(tr2.SampleAt(6.0));
+        Assert.True(tr2.SampleAt(7.0));
+
+        Assert.Equal(1.0, tr2.LastChanged(1.0));
+        Assert.Equal(2.0, tr2.LastChanged(2.0));
+        Assert.Equal(3.0, tr2.LastChanged(3.0));
+        Assert.Equal(4.0, tr2.LastChanged(4.0));
+        Assert.Equal(5.0, tr2.LastChanged(5.0));
+        Assert.Equal(6.0, tr2.LastChanged(6.0));
+        Assert.Equal(7.0, tr2.LastChanged(7.0));
+
+        Assert.False(tr2.SampleAt(1.5));
+        Assert.False(tr2.SampleAt(2.5));
+        Assert.False(tr2.SampleAt(3.5));
+        Assert.False(tr2.SampleAt(4.5));
+        Assert.False(tr2.SampleAt(5.5));
+        Assert.False(tr2.SampleAt(6.5));
+        Assert.False(tr2.SampleAt(7.5));
+
+        Assert.Equal(double.NegativeInfinity, tr2.LastChanged(0.5));
+        Assert.Equal(1.0, tr2.LastChanged(1.5));
+        Assert.Equal(2.0, tr2.LastChanged(2.5));
+        Assert.Equal(3.0, tr2.LastChanged(3.5));
+        Assert.Equal(4.0, tr2.LastChanged(4.5));
+        Assert.Equal(5.0, tr2.LastChanged(5.5));
+        Assert.Equal(6.0, tr2.LastChanged(6.5));
+        Assert.Equal(7.0, tr2.LastChanged(7.5));
+
+        Assert.False(tr3.SampleAt(7.5));
+        Assert.Equal(double.NegativeInfinity, tr3.LastChanged(0.5));
+
+        Assert.True(tr2.SampleAt(1.5, -0.6));
+        Assert.True(tr2.SampleAt(1.5, 0.0, 0.6));
+        Assert.False(tr2.SampleAt(1.0, 0.1,-0.1)); // impossible condition
+
+
+    }
 }

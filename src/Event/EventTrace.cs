@@ -59,4 +59,23 @@ public class EventTrace : IEventTrace
         return this.GetEnumerator();
     }
 
+    public bool SampleAt(double time, double tolerance = -1E-08, double toleranceAcausal = 1E-08) => 
+        LastChanged(time + toleranceAcausal) >= time + tolerance;
+        
+    public double LastChanged(double time)
+    {
+        // get index of the event or get the next event after
+        var indexOrNext = Times.BinarySearch(time);
+
+        // Hit the exact time!
+        if(indexOrNext >= 0) return time;
+
+        // the element was not found -> binary complement holds the next larger hit or Times.Count
+        indexOrNext = ~indexOrNext;
+
+        // if the next larger index is 0, there was nothing before time
+        if(indexOrNext == 0) return double.NegativeInfinity;
+
+        return Times[indexOrNext-1];
+    }
 }

@@ -37,6 +37,20 @@ public interface ISignalTrace<T> : IEnumerable<(double Time, T Value)> where T :
     void Record(double time, T value);
 
     ///<summary>
+    ///Returns signal's value at the time in question.
+    ///If there was a change exactly at the specified time, returns the value after the change
+    ///if `after` is true or the value before the change if `after` is false.
+    ///If there were multiple changes at the same time, returns the value after the last or before the first such change, respectively.
+    ///</summary>
+    T SampleAt(double time, bool after=true);
+
+    ///<summary>
+    ///Returns the time of the last change (i.e. when the value actually changed) before the specified time.
+    ///Returns double.NegativeInfinity if no prior change was found.
+    ///</summary>
+    double LastChanged(double time);
+
+    ///<summary>
     ///Clears the trace entirely.
     ///</summary>
     void Clear();

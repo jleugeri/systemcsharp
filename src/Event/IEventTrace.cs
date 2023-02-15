@@ -26,6 +26,18 @@ public interface IEventTrace : IEnumerable<double>
     void Record(double time);
 
     ///<summary>
+    ///Returns true if there is an event at the time in question.
+    ///Checks in the range [time+tolerance; time+toleranceAcausal]
+    ///</summary>
+    bool SampleAt(double time, double tolerance = -1E-08, double toleranceAcausal = 1E-08);
+
+    ///<summary>
+    ///Returns the time of the last change (i.e. event) before the specified time.
+    ///Returns double.NegativeInfinity if no prior change was found.
+    ///</summary>
+    double LastChanged(double time);
+
+    ///<summary>
     ///Clears the event trace entirely.
     ///</summary>
     void Clear();
